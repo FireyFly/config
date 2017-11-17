@@ -1,0 +1,266 @@
+" FireFly's vimrc
+call pathogen#infect()
+
+set nocompatible
+set enc=utf-8
+syntax on
+
+"""" Neovim options """""""""""""""""""""""""""""""""""""""""""""""""
+if has('nvim')
+  tnoremap <Esc> <C-\><C-n>
+endif
+
+"""" Options """"""""""""""""""""""""""""""""""""""""""""""""""""""""
+set hidden
+if !has('nvim')
+  set notimeout ttimeout ttimeoutlen=100
+endif
+
+set cpoptions+=J "M
+set tildeop
+set textwidth=78
+set backspace=indent,eol,start
+
+set shortmess+=I lazyredraw
+set incsearch nohlsearch cursorline showcmd
+set nowrap sidescroll=5 scrolloff=3
+set splitright title
+
+set foldmethod=marker
+if version >= 703 | set colorcolumn=+2 | end
+
+set ruler laststatus=0
+set stl=\ %-8.(%l,%c%V%)\ %P\ %#StatusLineNC#
+set ruf=%#StatusLine#\ %-8.(%l,%c%V%)\ %P
+
+set list listchars=tab:»\ ,trail:·,nbsp:␣,extends:$,precedes:^
+set fillchars=vert:│,stl:─,stlnc:─
+
+set history=500
+
+" Use persistent undo if available
+if version >= 703
+  set undodir=~/.vim/undodir
+  set undofile
+  set undolevels=1000
+  set undoreload=10000
+end
+
+" Make GUI vim behave more like I'm used to
+set go= gcr+=a:blinkon0
+
+"Indentation options
+set copyindent autoindent
+set expandtab nosmarttab
+set breakindent preserveindent noshiftround
+set ts=2 sts=0 sw=2
+
+inoremap <Tab> <C-v><Tab>
+
+" Formatting etc.
+set formatoptions+=n            " Indent numbered lists in comments better
+set formatoptions+=l            " Don't wrap lines that were already long
+if v:version > 703 || v:version == 703 && has('patch541')
+  set formatoptions+=j          " Remove comment leaders when joining
+endif
+
+"set comments=s1:/*,mb:*,ex:*/,O://,bO:#,:%,fb:-
+set comments=s1:/*,mb:*,ex:*/,O://,bO:#
+
+"""" Mappings """""""""""""""""""""""""""""""""""""""""""""""""""""""
+let mapleader = "-"
+
+noremap ä :
+nnoremap <C-e> :e 
+" open above/below within column
+nnoremap <Leader>o i<Esc>yypVr<Space>`^jC
+nnoremap <Leader>O i<Esc>yyPVr<Space>`^kC
+
+cnoremap <C-a> <Home>
+map Y y$
+cnoremap w!! w !sudo dd of=%
+"nnoremap <Esc> :silent noh<CR><Esc>
+
+nnoremap <Leader>. :!!<CR>
+
+nnoremap <Leader>e :edit %<CR>
+nnoremap <Leader>re :silent edit $MYVIMRC<CR>
+nnoremap <Leader>rs :silent source $MYVIMRC<CR>
+
+nnoremap <Leader><Leader> <C-^>
+for i in range(1, 10)
+  exec 'nnoremap <Leader>' . (i % 10) . ' :buf ' . i . '<CR>'
+endfor
+
+nnoremap <Leader>== I <Esc>yypVr=A=<Esc>
+
+" This is a godsend when messing about with syntax rule files
+map <F11> :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<'
+\ . synIDattr(synID(line("."),col("."),0),"name") . "> lo<"
+\ . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
+
+" 'Dual-head mode'
+map <Leader>v :set noscb<CR>:botright vsplit<CR><C-f>:set scb<CR><C-w>h:set scb<CR>
+
+" Text objects
+onoremap u /\u<CR>
+onoremap U ?\u<CR>
+
+
+"""" Digraphs """""""""""""""""""""""""
+dig HH 9552 VV 9553                  " ═ ║
+dig dR 9554 Dr 9555 DR 9556          " ╒ ╓ ╔
+dig dL 9557 Dl 9558 DL 9559          " ╕ ╖ ╗
+dig uR 9560 Ur 9561 UR 9562          " ╘ ╙ ╚
+dig uL 9563 Ul 9564 UL 9565          " ╛ ╜ ╝
+dig vR 9566 Vr 9567 VR 9568          " ╞ ╟ ╠
+dig vL 9569 Vl 9570 VL 9571          " ╡ ╢ ╣
+dig dH 9572 Dh 9573 DH 9574          " ╤ ╥ ╦
+dig uH 9575 Uh 9576 UH 9577          " ╧ ╨ ╩
+dig vH 9578 Vh 9579 VH 9580          " ╪ ╫ ╬
+dig (1 9581 (2 9582 (3 9583 (4 9584  " ╭ ╮ ╯ ╰  ))))
+dig ll 9588 uu 9589 rr 9590 dd 9591  " ╴ ╵ ╶ ╷
+
+
+"""" Visuals, aesthetics """"""""""""""""""""""""""""""""""""""""""""
+" Add a few custom filetypes
+au BufRead,BufNewFile /usr/share/X11/xkb/* setf xkb
+au BufRead,BufNewFile *.md                 setf markdown
+
+au BufRead,BufNewFile *.json               setf json
+au BufRead,BufNewFile *.note,*.lecnote     setf note
+au BufRead,BufNewFile *.selfml             setf selfml
+au BufRead,BufNewFile *.ijs                setf j
+au BufRead,BufNewFile *.k                  set ft=k5
+au BufRead,BufNewFile *.om                 setf om
+au BufRead,BufNewFile *.qml                setf javascript
+au BufRead,BufNewFile *.glsl               setf c
+au BufRead,BufNewFile *.vimp,*.penta       setf vimperator
+au BufRead            */xchatlogs/*.log    setf irclog | setlocal ro noma
+au BufRead            *.weechatlog         setf weechatlog | setlocal ro noma
+
+" Custom filetype-dependent metadata
+au FileType lua  setlocal comments=:--
+au FileType j    setlocal comments=:NB.
+au FileType go   setlocal nolist ts=2 noet
+
+"""" Colour scheme """"""""""""""""""""
+" pangoterm fanciness
+if $REALTERM == "pangoterm"
+  set t_ZH=[3m   t_ZR=[23m    " italics
+  set t_SI=[5\ q t_EI=[1\ q   " insert mode bar-cursor
+end
+
+color hybrid
+let _ = -1 | let NONE = 'NONE'
+"let format_overrides = { " ctermfg bg  cterm   guifg   guibg    gui ": [],
+"  \ 'CursorLine':        [    _,  232,     _ ,     _ , '#000',    _ ],
+"  \ 'CursorColumn':      [    _,  232,     _ ,     _ , '#000',    _ ],
+"  \ 'ColorColumn':       [    _,  233,     _ ,     _ , '#111',    _ ],
+"  \ 'VertSplit':         [  236, NONE,     _ ,     _ ,  NONE ,    _ ],
+"  \ 'StatusLine':        [  246, NONE,  NONE ,     _ ,  NONE , NONE ],
+"  \ 'StatusLineNC':      [  236, NONE,  NONE ,     _ ,  NONE , NONE ],
+"  \ 'LineNr':            [  238,    _,     _ , '#555',     _ ,    _ ],
+"  \ 'CursorLineNr':      [    3,  232,     _ , '#C93', '#000', NONE ],
+"  \ 'SignColumn':        [    _, NONE,     _ ,     _ ,     _ ,    _ ],
+"  \ 'Folded':            [    _,  233,     _ ,     _ , '#111',    _ ],
+"  \ 'Search':            [    _,  238,     _ ,     _ , '#111',    _ ],
+"  \ 'ModeMsg':           [    2,    _, 'bold', '#9C3',     _ ,    _ ],
+"  \ 'ErrorMsg':          [    7,    1, 'bold', '#9C3',     _ ,    _ ],
+"  \
+"  \ 'Conceal':           [   14, NONE,     _ , '#3C9',  NONE ,    _ ],
+"  \ 'SpecialKey':        [  236, NONE,     _ , '#333',  NONE ,    _ ],
+"  \
+"  \ 'markdownCode':      [  175,    _,     _ ,     _ ,     _ ,    _ ],
+"  \ 'markdownCodeBlock': [  175,    _,     _ ,     _ ,     _ ,    _ ],
+"  \ 'Ignore':            [    0,    _,     _ ,     _ ,     _ ,    _ ],
+"  \ }
+let format_overrides = { " ctermfg bg  cterm   guifg   guibg    gui ": [],
+  \ 'CursorLine':        [    _,  232,     _ ],
+  \ 'CursorColumn':      [    _,  232,     _ ],
+  \ 'ColorColumn':       [    _,  233,     _ ],
+  \ 'VertSplit':         [  236, NONE,     _ ],
+  \ 'StatusLine':        [  246, NONE,  NONE ],
+  \ 'StatusLineNC':      [  236, NONE,  NONE ],
+  \ 'LineNr':            [  238,    _,     _ ],
+  \ 'CursorLineNr':      [    3,  232,     _ ],
+  \ 'SignColumn':        [    _, NONE,     _ ],
+  \ 'Folded':            [    _,  233,     _ ],
+  \ 'Search':            [    _,  238,     _ ],
+  \ 'ModeMsg':           [    2,    _, 'bold'],
+  \ 'ErrorMsg':          [    7,    1, 'bold'],
+  \
+  \ 'Conceal':           [   14, NONE,     _ ],
+  \ 'SpecialKey':        [  236, NONE,     _ ],
+  \
+  \ 'markdownCode':      [  175,    _,     _ ],
+  \ 'markdownCodeBlock': [  175,    _,     _ ],
+  \ 'Ignore':            [    0,    _,     _ ],
+  \ }
+
+hi link rubyRegexp Constant
+
+let keys = ['ctermfg', 'ctermbg', 'cterm', 'guifg', 'guibg', 'gui']
+for [name, val] in items(format_overrides)
+  let params = map(val, 'v:val != -1 ? keys[v:key] . "=" . v:val : ""')
+  if len(params) == 0 | continue | endif
+  exec 'hi ' . name . ' ' . join(params, ' ')
+endfor
+
+
+set conceallevel=2 concealcursor=ni
+
+
+"""" Plug-ins and scripts """""""""""""""""""""""""""""""""""""""""""
+" Dump files to web server--uses 2html.vim
+let g:html_number_lines = 0
+let g:html_line_ids      = 1
+let g:html_dynamic_folds = 1
+let g:html_use_encoding  = 'UTF-8'
+" implementation moved to plugin/pastebox.vim
+let g:pasteboxWriteCommand = 'ssh fe "cat >srv/http/up/{}"'
+
+" netrw
+let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro'
+
+" Signify
+let g:signify_sign_add               = '+'
+let g:signify_sign_change            = '~'
+let g:signify_sign_delete            = '-'
+let g:signify_sign_change_delete     = '±'
+let g:signify_sign_delete_first_line = '‾'
+
+let g:signify_sign_color_ctermfg_add    = 70
+let g:signify_sign_color_ctermfg_delete = 160
+let g:signify_sign_color_ctermfg_change = 178
+
+" ALE
+let g:ale_lint_on_text_changed = 'normal'
+let g:ale_lint_on_insert_leave = 1
+
+" Notebook
+let g:notebook_cmd    = 'j8'
+let g:notebook_stop   = "exit ''"
+let g:notebook_send0  = "''"
+let g:notebook_send   = "'VIMJNOTEBOOK'"
+let g:notebook_detect = '   VIMJNOTEBOOK'
+
+func! <SID>notebookEvalRange(mode)
+  '[,']NotebookEvaluate
+endfunc
+nnoremap <silent> <Leader>x  :set opfunc=<SID>notebookEvalRange<CR>g@
+nnoremap <silent> <Leader>xx :NotebookEvaluate<CR>
+vnoremap <silent> <Leader>x  :NotebookEvaluate<CR>
+
+"""" Scratchpad area """"""""""""""""""""""""""""""""""""""""""""""""
+au BufReadPost  * if &bin | %!xxd
+au BufReadPost  * set ft=xxd | endif
+au BufWritePre  * if &bin | %!xxd -r
+au BufWritePre  * endif
+au BufWritePost * if &bin | %!xxd
+
+" http://stackoverflow.com/questions/20262519/vim-how-to-source-a-part-of-the-buffer
+":[range]Execute    Execute text lines as ex commands.
+"           Handles |line-continuation|.
+command! -bar -range Execute silent <line1>,<line2>yank z | let @z = substitute(@z, '\n\s*\\', '', 'g') | @z
+
