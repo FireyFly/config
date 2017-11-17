@@ -1,0 +1,118 @@
+# ~/.zshrc
+#source "$HOME/.shellrc"
+
+prompt_color=green
+export EDITOR=vim
+
+alias ls='ls --color=tty'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+function mkdircd { mkdir "$1"; cd "$1" }
+
+export PATH="${HOME}/local/bin:${PATH}"
+
+# Import modules/stuff
+autoload -U  compinit   && compinit
+autoload -U  promptinit && promptinit
+autoload -U  colors     && colors
+
+
+### Variables
+esc="$(echo -e '\e')"
+up="${esc}[A"
+down="${esc}[B"
+bold="${esc}[1m"
+
+### Hooks to update title
+# Usage: set_title "new-title"
+function set_title {
+  title_set="${esc}]0"
+  title_stop="$(echo -e '\007')"
+  Title="$title_set;$@$title_stop"
+  echo -n "$Title"
+}
+
+function rprompt {
+# local exit_code=$?            # exit code of command
+  local count=$(jobs | wc -l)   # no. of background jobs
+
+  # Report no. of background jobs if >0
+  if [ $count -ge 1 ]; then
+    echo -n " %{$fg[cyan]%}⎇ %j %{$reset_color%}"
+  fi
+}
+
+function exit_line {
+  local exit_code=$?
+  if [ $exit_code -ne 0 ]; then
+    local w=$(( (COLUMNS - ${#exit_code}) / 2 ))
+    local r=$(( COLUMNS - w - ${#exit_code} ))
+    printf "%s%${w}s%s%${r}s%s" "%{$bg[red]$fg[white]$bold%}" '' "$exit_code" '' "%{$reset_color%}"
+  fi
+}
+
+if [ $TERM != 'linux' ]; then
+  function chpwd {
+    pwd="$(pwd | sed s:$HOME:~:)"
+    set_title "$USER@$HOST $pwd"
+  }
+  chpwd
+fi
+
+### Setup prompt
+setopt PROMPT_SUBST
+
+PROMPT='$(exit_line)%{$fg[$prompt_color]%}%n@%m%{$reset_color%} %~
+%{$fg[yellow]%}%# %{$reset_color%}'
+RPROMPT='%{$up%}$(rprompt)%{$down%}'
+PS2="%{${fg[yellow]}%}» %{$reset_color%}"
+
+# History
+if [ $TERM != 'linux' ]; then
+  export HISTSIZE=2000
+  export HISTFILE="$HOME/.history"
+  export SAVEHIST="$HISTSIZE"
+fi
+setopt hist_ignore_all_dups
+#setopt extendedglob
+
+if [ -e /usr/share/doc/pkgfile/command-not-found.zsh ]; then
+  source /usr/share/doc/pkgfile/command-not-found.zsh
+fi
+
+
+#### Aliases ########################################################
+# (zsh specific--also see .shellrc)
+alias G='grep -P'
+alias L='less -r'
+
+
+#### Keybindings
+bindkey -v         # vi-like bindings
+
+# Handy emacs-like bindings
+bindkey    "^A"    beginning-of-line
+bindkey    '^E'    end-of-line
+bindkey    "^H"    backward-delete-char
+bindkey    "^N"    down-line-or-history
+bindkey    "^P"    up-line-or-history
+bindkey    "^R"    history-incremental-pattern-search-backward
+bindkey    "^V"    quoted-insert
+bindkey    '^?'    backward-delete-char
+
+# vi 'normal mode'
+bindkey -a "^A"    beginning-of-line
+bindkey -a '^E'    end-of-line
+bindkey -a '^K'    kill-whole-line
+
+# Also fix a bunch of other keys
+bindkey '^[[H'     beginning-of-line # <Home>
+bindkey '^[[F'     end-of-line       # <End>
+bindkey "^[[1;5D"  backward-word     # <C-left>
+bindkey "^[[1;5C"  forward-word      # <C-right>
+
+bindkey "^K"       kill-whole-line
+bindkey "^U"       undo
+bindkey "^['"      quote-line
+bindkey "^[[39;5u" quote-line
